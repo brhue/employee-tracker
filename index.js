@@ -19,8 +19,75 @@ connection.connect((err) => {
   // viewRoles();
   // viewEmployees();
   // editEmployeeRole();
-  editEmployeeManager();
+  // editEmployeeManager();
+  start();
 });
+
+async function start() {
+  const choices = [
+    {
+      name: 'View All Employees',
+      value: 0,
+    },
+    {
+      name: 'View All Roles',
+      value: 1,
+    },
+    {
+      name: 'View All Departments',
+      value: 2,
+    },
+    {
+      name: 'Add Employee',
+      value: 3,
+    },
+    {
+      name: 'Add Role',
+      value: 4,
+    },
+    {
+      name: 'Add Department',
+      value: 5,
+    },
+    {
+      name: 'Update Employee Role',
+      value: 6,
+    },
+  ];
+  const questions = [
+    {
+      type: 'list',
+      message: 'What would you like to do?',
+      name: 'choice',
+      choices,
+    },
+  ];
+
+  try {
+    const { choice } = await inquirer.prompt(questions);
+    switch (choice) {
+      case 0:
+        return viewEmployees();
+      case 1:
+        return viewRoles();
+      case 2:
+        return viewDepartments();
+      case 3:
+        return createEmployee();
+      case 4:
+        return createRole();
+      case 5:
+        return createDepartment();
+      case 6:
+        return editEmployeeRole();
+      default:
+        // shouldn't be hit
+    }
+  } catch (e) {
+    console.error(e);
+    connection.end();
+  }
+}
 
 function createDepartment() {
   connection.query('insert into department (name) values (?)', ['Engineering'], (err, res) => {
