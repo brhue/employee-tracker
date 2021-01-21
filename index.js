@@ -17,7 +17,9 @@ connection.connect((err) => {
   // createEmployee();
   // viewDepartments();
   // viewRoles();
-  viewEmployees();
+  // viewEmployees();
+  // editEmployeeRole();
+  editEmployeeManager();
 });
 
 function createDepartment() {
@@ -82,6 +84,24 @@ function viewEmployees() {
   connection.query('select * from employee', (err, rows) => {
     if (err) throw err;
     console.table(rows);
+    connection.end();
+  });
+}
+
+function editEmployeeRole() {
+  const values = [1, 1];
+  connection.query('update employee set role_id = ? where id = ?', values, (err, res) => {
+    if (err) throw err;
+    console.log(res);
+    connection.end();
+  });
+}
+
+function editEmployeeManager() {
+  const values = [1, 1];
+  connection.query('update employee set manager_id = ? where id = ?', values, (err, res) => {
+    if (err) throw err;
+    console.log(res);
     connection.end();
   });
 }
