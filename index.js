@@ -14,13 +14,24 @@ connection.connect((err) => {
   console.log('connected!');
   // createDepartment();
   // createRole();
-  createEmployee();
+  // createEmployee();
+  // viewDepartments();
+  // viewRoles();
+  viewEmployees();
 });
 
 function createDepartment() {
   connection.query('insert into department (name) values (?)', ['Engineering'], (err, res) => {
     if (err) throw err;
     console.log(res);
+    connection.end();
+  });
+}
+
+function viewDepartments() {
+  connection.query('select * from department', (err, rows) => {
+    if (err) throw err;
+    console.table(rows);
     connection.end();
   });
 }
@@ -42,6 +53,14 @@ function createRole() {
   });
 }
 
+function viewRoles() {
+  connection.query('select * from role', (err, rows) => {
+    if (err) throw err;
+    console.table(rows);
+    connection.end();
+  });
+}
+
 function createEmployee() {
   connection.query('select * from role', (err, rows) => {
     if (err) throw err;
@@ -56,5 +75,13 @@ function createEmployee() {
         connection.end();
       });
     }
+  });
+}
+
+function viewEmployees() {
+  connection.query('select * from employee', (err, rows) => {
+    if (err) throw err;
+    console.table(rows);
+    connection.end();
   });
 }
