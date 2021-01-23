@@ -103,6 +103,37 @@ function getBudget() {
   });
 }
 
+function getEmployeesByManagerID(id) {
+  const queryStr = `select concat(first_name, ' ', last_name) as name, title, salary from employee
+  join role on role_id = role.id
+  where manager_id = ?`;
+
+  return new Promise((resolve, reject) => {
+    connection.query(queryStr, id, (err, employees) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(employees);
+      }
+    });
+  });
+}
+
+function getManagers() {
+  const queryStr = `select distinct employee.id, concat(employee.first_name, ' ', employee.last_name) as full_name from employee
+  join employee as manager on manager.manager_id = employee.id;`;
+  
+  return new Promise((resolve, reject) => {
+    connection.query(queryStr, (err, managers) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(managers);
+      }
+    });
+  });
+}
+
 module.exports = {
   connection,
   getAll,
@@ -112,4 +143,6 @@ module.exports = {
   getEmployeesWithJoins,
   getRolesWithJoin,
   getBudget,
+  getEmployeesByManagerID,
+  getManagers,
 };

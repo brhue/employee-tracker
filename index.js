@@ -1,4 +1,4 @@
-const { connection, getAll, updateOneById, createOne, getEmployeesWithJoins, getRolesWithJoin, getBudget, deleteOne } = require('./db');
+const { connection, getAll, updateOneById, createOne, getEmployeesWithJoins, getRolesWithJoin, getBudget, deleteOne, getEmployeesByManagerID, getManagers } = require('./db');
 const inquirer = require('inquirer');
 
 connection.connect((err) => {
@@ -57,6 +57,10 @@ async function start() {
       name: 'Delete Employee',
       value: 11,
     },
+    {
+      name: 'View Employees By Manager',
+      value: 12,
+    },
   ];
   const questions = [
     {
@@ -105,6 +109,9 @@ async function start() {
         break;
       case 11:
         await deleteEmployee();
+        break;
+      case 12:
+        await viewEmployeesByManager();
         break;
       default:
         // shouldn't be hit
@@ -265,6 +272,26 @@ async function createEmployee() {
 
 async function viewEmployees() {
   const employees = await getEmployeesWithJoins();
+  console.table(employees);
+}
+
+async function viewEmployeesByManager() {
+  const managers = (await getManagers()).map(m => ({ name: m.full_name, value: m.id }));
+  if (managers.length === 0) {
+    console.log('There are currently no managers!');
+    return;
+  }
+
+  const { manager_id } = await inquirer.prompt([
+    {
+      type: 'list',
+      message: "Which manager's employees would you like to see?",
+      choices: managers,
+      name: 'manager_id',
+    },
+  ]);
+
+  const employees = await getEmployeesByManagerID(manager_id);
   console.table(employees);
 }
 
