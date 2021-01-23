@@ -44,9 +44,59 @@ function createOne(table, values) {
   });
 }
 
+function getEmployeesWithJoins() {
+  const queryStr = `select employee.first_name, employee.last_name, title, salary, name as department, concat(manager.first_name, ' ', manager.last_name) as manager from employee
+  left join employee as manager on employee.manager_id = manager.id
+  join role on employee.role_id = role.id
+  join department on department_id = department.id;`;
+  return new Promise((resolve, reject) => {
+    connection.query(queryStr, (err, employees) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(employees);
+      }
+    });
+  });
+}
+
+function getRolesWithJoin() {
+  const queryStr = `select title, salary, name as department from role
+  join department on department_id = department.id;`;
+  return new Promise((resolve, reject) => {
+    connection.query(queryStr, (err, roles) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(roles);
+      }
+    });
+  });
+}
+
+function getBudget() {
+  const queryStr = `select name as department, sum(salary) as budget from employee 
+  join role on role_id = role.id
+  join department on department_id = department.id
+  group by department;`;
+
+  return new Promise((resolve, reject) => {
+    connection.query(queryStr, (err, budgets) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(budgets);
+      }
+    });
+  });
+}
+
 module.exports = {
   connection,
   getAll,
   updateOneById,
   createOne,
+  getEmployeesWithJoins,
+  getRolesWithJoin,
+  getBudget,
 };
