@@ -12,14 +12,6 @@ const connection = mysql.createConnection({
 connection.connect((err) => {
   if (err) throw err;
   console.log('connected!');
-  // createDepartment();
-  // createRole();
-  // createEmployee();
-  // viewDepartments();
-  // viewRoles();
-  // viewEmployees();
-  // editEmployeeRole();
-  // editEmployeeManager();
   start();
 });
 
@@ -67,19 +59,26 @@ async function start() {
     const { choice } = await inquirer.prompt(questions);
     switch (choice) {
       case 0:
-        return viewEmployees();
+        viewEmployees();
+        break;
       case 1:
-        return viewRoles();
+        viewRoles();
+        break;
       case 2:
-        return viewDepartments();
+        viewDepartments();
+        break;
       case 3:
-        return createEmployee();
+        await createEmployee();
+        break;
       case 4:
-        return createRole();
+        createRole();
+        break;
       case 5:
-        return createDepartment();
+        createDepartment();
+        break;
       case 6:
-        return editEmployeeRole();
+        editEmployeeRole();
+        break;
       default:
         // shouldn't be hit
     }
@@ -87,6 +86,7 @@ async function start() {
     console.error(e);
     connection.end();
   }
+  start();
 }
 
 function createDepartment() {
@@ -130,20 +130,57 @@ function viewRoles() {
   });
 }
 
-function createEmployee() {
-  connection.query('select * from role', (err, rows) => {
-    if (err) throw err;
-    if (rows.length === 0) {
-      console.log('You need to create some roles first!');
-      connection.end();
-    } else {
-      const values = ['Bradley', 'Donahue', 1];
-      connection.query('insert into employee (first_name, last_name, role_id) values (?, ?, ?)', values, (err, res) => {
-        if (err) throw err;
-        console.log(res);
-        connection.end();
-      });
+function getRoles() {
+  return new Promise((resolve, reject) => {
+    connection.query('select * from role', (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    });
+  });
+}
+
+async function createEmployee() {
+  const employees = (await getEmployees()).map((employee) => ({ value: employee.id, name: `${employee.first_name} ${employee.last_name}` }));
+  employees.push({ name: 'None', value: null });
+  const roles = (await getRoles()).map(({ id: value, title: name }) => ({ value, name }));;
+  if (roles.length === 0) {
+    console.log('You need to add some roles first!');
+    return;
+  }
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      message: "What is the employee's first name?",
+      name: 'first_name'
+    },
+    {
+      type: 'input',
+      message: "What is the employee's last name?",
+      name: 'last_name',
+    },
+    {
+      type: 'list',
+      message: "What is the employee's role?",
+      choices: roles,
+      name: 'role_id',
+      when: () => roles.length > 0,
+    },
+    {
+      type: 'list',
+      message: "Who is the employee's manager?",
+      choices: employees,
+      name: 'manager_id',
+      when: () => employees.length > 0
     }
+  ]);
+  console.log(answers);
+  connection.query('insert into employee set ?', answers, (err, res) => {
+    if (err) throw err;
+    console.log(res);
+    // connection.end();
   });
 }
 
@@ -152,6 +189,18 @@ function viewEmployees() {
     if (err) throw err;
     console.table(rows);
     connection.end();
+  });
+}
+
+function getEmployees() {
+  return new Promise((resolve, reject) => {
+    connection.query('select * from employee', (err, rows) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(rows);
+      }
+    });
   });
 }
 
