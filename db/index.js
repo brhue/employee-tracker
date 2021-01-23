@@ -44,6 +44,18 @@ function createOne(table, values) {
   });
 }
 
+function deleteOne(table, id) {
+  return new Promise((resolve, reject) => {
+    connection.query('delete from ?? where id = ?', [table, id], (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+}
+
 function getEmployeesWithJoins() {
   const queryStr = `select employee.first_name, employee.last_name, title, salary, name as department, concat(manager.first_name, ' ', manager.last_name) as manager from employee
   left join employee as manager on employee.manager_id = manager.id
@@ -96,6 +108,7 @@ module.exports = {
   getAll,
   updateOneById,
   createOne,
+  deleteOne,
   getEmployeesWithJoins,
   getRolesWithJoin,
   getBudget,

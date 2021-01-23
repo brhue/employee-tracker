@@ -1,4 +1,4 @@
-const { connection, getAll, updateOneById, createOne } = require('./db');
+const { connection, getAll, updateOneById, createOne, getEmployeesWithJoins, getRolesWithJoin, getBudget, deleteOne } = require('./db');
 const inquirer = require('inquirer');
 
 connection.connect((err) => {
@@ -37,6 +37,26 @@ async function start() {
       name: 'Update Employee Role',
       value: 6,
     },
+    {
+      name: 'Update Employee Manager',
+      value: 7,
+    },
+    {
+      name: 'View Budget',
+      value: 8,
+    },
+    {
+      name: 'Delete Department',
+      value: 9,
+    },
+    {
+      name: 'Delete Role',
+      value: 10,
+    },
+    {
+      name: 'Delete Employee',
+      value: 11,
+    },
   ];
   const questions = [
     {
@@ -71,6 +91,21 @@ async function start() {
       case 6:
         await editEmployeeRole();
         break;
+      case 7:
+        await editEmployeeManager();
+        break;
+      case 8:
+        await viewBudget();
+        break;
+      case 9:
+        await deleteDepartment();
+        break;
+      case 10:
+        await deleteRole();
+        break;
+      case 11:
+        await deleteEmployee();
+        break;
       default:
         // shouldn't be hit
     }
@@ -79,6 +114,11 @@ async function start() {
     connection.end();
   }
   start();
+}
+
+async function viewBudget() {
+  const budgets = await getBudget();
+  console.table(budgets);
 }
 
 async function createDepartment() {
@@ -91,6 +131,60 @@ async function createDepartment() {
   ]);
   const result = await createOne('department', answers);
   console.log(`Created '${answers.name}' successfully.`);
+}
+
+async function deleteDepartment() {
+  const departments = (await getAll('department')).map((d) => ({ name: d.name, value: d.id }));
+  if (departments.length === 0) {
+    console.log('No departments to delete!');
+    return;
+  }
+  const { id } = await inquirer.prompt([
+    {
+      type: 'list',
+      message: 'Which department would you like to remove?',
+      choices: departments,
+      name: 'id',
+    },
+  ]);
+  const result = await deleteOne('department', id);
+  console.log('Deleted successfully!');
+}
+
+async function deleteRole() {
+  const roles = (await getAll('role')).map((r) => ({ name: r.title, value: r.id }));
+  if (roles.length === 0) {
+    console.log('No roles to delete!');
+    return;
+  }
+  const { id } = await inquirer.prompt([
+    {
+      type: 'list',
+      message: 'Which role would you like to remove?',
+      choices: roles,
+      name: 'id',
+    },
+  ]);
+  const result = await deleteOne('role', id);
+  console.log('Deleted successfully!');
+}
+
+async function deleteEmployee() {
+  const employees = (await getAll('employee')).map((e) => ({ name: `${e.first_name} ${e.last_name}`, value: e.id }));
+  if (employees.length === 0) {
+    console.log('No employees to delete!');
+    return;
+  }
+  const { id } = await inquirer.prompt([
+    {
+      type: 'list',
+      message: 'Which employee would you like to remove?',
+      choices: employees,
+      name: 'id',
+    },
+  ]);
+  const result = await deleteOne('employee', id);
+  console.log('Deleted successfully!');
 }
 
 async function viewDepartments() {
@@ -127,7 +221,7 @@ async function createRole() {
 }
 
 async function viewRoles() {
-  const roles = await getAll('role');
+  const roles = await getRolesWithJoin();
   console.table(roles);
 }
 
@@ -170,7 +264,7 @@ async function createEmployee() {
 }
 
 async function viewEmployees() {
-  const employees = await getAll('employee');
+  const employees = await getEmployeesWithJoins();
   console.table(employees);
 }
 
@@ -195,11 +289,22 @@ async function editEmployeeRole() {
   console.log('Updated successfully!');
 }
 
-function editEmployeeManager() {
-  const values = [1, 1];
-  connection.query('update employee set manager_id = ? where id = ?', values, (err, res) => {
-    if (err) throw err;
-    console.log(res);
-    connection.end();
-  });
+async function editEmployeeManager() {
+  const employees = (await getAll('employee')).map((employee) => ({ name: `${employee.first_name} ${employee.last_name}`, value: employee.id }));
+  const { id, manager_id } = await inquirer.prompt([
+    {
+      type: 'list',
+      message: 'Whose manager would you like to update?',
+      choices: employees,
+      name: 'id',
+    },
+    {
+      type: 'list',
+      message: 'Who is their new manager?',
+      choices: (answers) => employees.filter(e => e.id !== answers.id),
+      name: 'manager_id',
+    },
+  ]);
+  const result = await updateOneById('employee', id, { manager_id });
+  console.log('Updated successfully!');
 }
