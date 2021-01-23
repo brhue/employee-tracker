@@ -14,7 +14,7 @@ const inquirer = require('inquirer');
 
 connection.connect((err) => {
   if (err) throw err;
-  console.log('connected!');
+  console.log('Welcome to the Employee Manager CLI!');
   start();
 });
 
