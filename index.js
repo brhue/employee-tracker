@@ -1,4 +1,15 @@
-const { connection, getAll, updateOneById, createOne, getEmployeesWithJoins, getRolesWithJoin, getBudget, deleteOne, getEmployeesByManagerID, getManagers } = require('./db');
+const {
+  connection,
+  getAll,
+  updateOneById,
+  createOne,
+  getEmployeesWithJoins,
+  getRolesWithJoin,
+  getBudget,
+  deleteOne,
+  getEmployeesByManagerID,
+  getManagers,
+} = require('./db');
 const inquirer = require('inquirer');
 
 connection.connect((err) => {
@@ -61,6 +72,10 @@ async function start() {
       name: 'View Employees By Manager',
       value: 12,
     },
+    {
+      name: 'Exit',
+      value: 13,
+    },
   ];
   const questions = [
     {
@@ -113,8 +128,12 @@ async function start() {
       case 12:
         await viewEmployeesByManager();
         break;
+      case 13:
+        connection.end();
+        console.log('Goodbye!');
+        process.exit();
       default:
-        // shouldn't be hit
+      // shouldn't be hit
     }
   } catch (e) {
     console.error(e);
@@ -200,7 +219,10 @@ async function viewDepartments() {
 }
 
 async function createRole() {
-  const departments = (await getAll('department')).map((department) => ({ value: department.id, name: department.name }));
+  const departments = (await getAll('department')).map((department) => ({
+    value: department.id,
+    name: department.name,
+  }));
   if (departments.length === 0) {
     console.log('You need to add some deparments first!');
     return;
@@ -221,7 +243,7 @@ async function createRole() {
       message: 'What department does this role belong too?',
       choices: departments,
       name: 'department_id',
-    }
+    },
   ]);
   const result = await createOne('role', answers);
   console.log(`Created '${answers.title}' successfully.`);
@@ -233,9 +255,12 @@ async function viewRoles() {
 }
 
 async function createEmployee() {
-  const employees = (await getAll('employee')).map((employee) => ({ value: employee.id, name: `${employee.first_name} ${employee.last_name}` }));
+  const employees = (await getAll('employee')).map((employee) => ({
+    value: employee.id,
+    name: `${employee.first_name} ${employee.last_name}`,
+  }));
   employees.push({ name: 'None', value: null });
-  const roles = (await getAll('role')).map(({ id: value, title: name }) => ({ value, name }));;
+  const roles = (await getAll('role')).map(({ id: value, title: name }) => ({ value, name }));
   if (roles.length === 0) {
     console.log('You need to add some roles first!');
     return;
@@ -244,7 +269,7 @@ async function createEmployee() {
     {
       type: 'input',
       message: "What is the employee's first name?",
-      name: 'first_name'
+      name: 'first_name',
     },
     {
       type: 'input',
@@ -263,8 +288,8 @@ async function createEmployee() {
       message: "Who is the employee's manager?",
       choices: employees,
       name: 'manager_id',
-      when: () => employees.length > 0
-    }
+      when: () => employees.length > 0,
+    },
   ]);
   const result = await createOne('employee', answers);
   console.log(`Created '${answers.first_name} ${answers.last_name}' successfully.`);
@@ -276,7 +301,7 @@ async function viewEmployees() {
 }
 
 async function viewEmployeesByManager() {
-  const managers = (await getManagers()).map(m => ({ name: m.full_name, value: m.id }));
+  const managers = (await getManagers()).map((m) => ({ name: m.full_name, value: m.id }));
   if (managers.length === 0) {
     console.log('There are currently no managers!');
     return;
@@ -296,7 +321,10 @@ async function viewEmployeesByManager() {
 }
 
 async function editEmployeeRole() {
-  const employees = (await getAll('employee')).map((employee) => ({ name: `${employee.first_name} ${employee.last_name}`, value: employee.id }));
+  const employees = (await getAll('employee')).map((employee) => ({
+    name: `${employee.first_name} ${employee.last_name}`,
+    value: employee.id,
+  }));
   const roles = (await getAll('role')).map((role) => ({ name: role.title, value: role.id }));
   const { id, role_id } = await inquirer.prompt([
     {
@@ -310,14 +338,17 @@ async function editEmployeeRole() {
       choices: roles,
       message: 'What is their new role?',
       name: 'role_id',
-    }
+    },
   ]);
   const result = await updateOneById('employee', id, { role_id });
   console.log('Updated successfully!');
 }
 
 async function editEmployeeManager() {
-  const employees = (await getAll('employee')).map((employee) => ({ name: `${employee.first_name} ${employee.last_name}`, value: employee.id }));
+  const employees = (await getAll('employee')).map((employee) => ({
+    name: `${employee.first_name} ${employee.last_name}`,
+    value: employee.id,
+  }));
   const { id, manager_id } = await inquirer.prompt([
     {
       type: 'list',
@@ -328,7 +359,7 @@ async function editEmployeeManager() {
     {
       type: 'list',
       message: 'Who is their new manager?',
-      choices: (answers) => employees.filter(e => e.id !== answers.id),
+      choices: (answers) => employees.filter((e) => e.id !== answers.id),
       name: 'manager_id',
     },
   ]);

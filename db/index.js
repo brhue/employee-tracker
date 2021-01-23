@@ -61,6 +61,7 @@ function getEmployeesWithJoins() {
   left join employee as manager on employee.manager_id = manager.id
   join role on employee.role_id = role.id
   join department on department_id = department.id;`;
+
   return new Promise((resolve, reject) => {
     connection.query(queryStr, (err, employees) => {
       if (err) {
@@ -75,6 +76,7 @@ function getEmployeesWithJoins() {
 function getRolesWithJoin() {
   const queryStr = `select title, salary, name as department from role
   join department on department_id = department.id;`;
+
   return new Promise((resolve, reject) => {
     connection.query(queryStr, (err, roles) => {
       if (err) {
@@ -122,7 +124,7 @@ function getEmployeesByManagerID(id) {
 function getManagers() {
   const queryStr = `select distinct employee.id, concat(employee.first_name, ' ', employee.last_name) as full_name from employee
   join employee as manager on manager.manager_id = employee.id;`;
-  
+
   return new Promise((resolve, reject) => {
     connection.query(queryStr, (err, managers) => {
       if (err) {
